@@ -1,0 +1,19 @@
+TWCC_CLI_CMD=/usr/local/bin/twccli
+
+echo "1. Creating CCS"
+$TWCC_CLI_CMD mk ccs -gpu 1 -wait -json > ccs_res.log
+
+CCS_ID=$(cat ccs_res.log | jq '.id')
+echo "2. CCS ID = $CCS_ID"
+
+echo "3. Checking GPU"
+ssh -o "StrictHostKeyChecking=no" `$TWCC_CLI_CMD ls ccs -s $CCS_ID -gssh` "nvidia-smi"
+
+echo "4. Run GPU"
+ssh -o "StrictHostKeyChecking=no" `$TWCC_CLI_CMD ls ccs -s $CCS_ID -gssh` "cd gpu-burn;./gpu_burn 100"
+
+echo "5. GC GPU"
+$TWCC_CLI_CMD rm ccs -s $CCS_ID -f
+
+echo "6. Checking CCS"
+$TWCC_CLI_CMD ls ccs
